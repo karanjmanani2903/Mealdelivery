@@ -24,7 +24,7 @@ const mealSchema = new mongoose.Schema(
     description: String,
     category: {
       type: String,
-      enum: ["veg", "non-veg"],
+      enum: ["veg", "non-veg","healthy"],
       required: true,
     },
     prepTime: {

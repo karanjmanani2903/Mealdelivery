@@ -5,7 +5,9 @@ const Order = require("../models/Order");
 const WeeklyPlan = require("../models/WeeklyPlan");
 const Meal = require("../models/Meal");
 
-// Create Order from Plan
+// ==============================
+// CREATE ORDER FROM PLAN
+// ==============================
 router.post("/", async (req, res) => {
   try {
     const { user, planId } = req.body;
@@ -21,10 +23,9 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "Plan not found" });
     }
 
-    // Fetch meals again (to rebuild ingredients safely)
+    // Fetch meals
     const mealDocs = await Meal.find({ _id: { $in: plan.meals } });
 
-    // Recreate ingredient aggregation (same logic)
     const ingredientMap = {};
 
     const unitConversion = {
@@ -34,15 +35,17 @@ router.post("/", async (req, res) => {
       l: { base: "ml", factor: 1000 },
     };
 
+    // Aggregate ingredients
     for (const meal of mealDocs) {
       for (const ing of meal.ingredients) {
         const name = ing.name;
 
-        const match = ing.quantity.match(/^(\d+)\s*([a-zA-Z]+)/);
+        const match = ing.quantity.match(/(\d+)/);
+        
         if (!match) continue;
-
         let value = parseInt(match[1]) * plan.servings;
-        let unit = match[2].toLowerCase();
+        let unit = ing.quantity.replace(match[1], "").trim().toLowerCase();
+        if (!unit) unit = "unit";
 
         if (unitConversion[unit]) {
           value = value * unitConversion[unit].factor;
@@ -62,8 +65,8 @@ router.post("/", async (req, res) => {
       }
     }
 
+    // Format ingredients
     const finalIngredients = {};
-
     for (let key in ingredientMap) {
       finalIngredients[key] = {
         total: ingredientMap[key].total,
@@ -82,6 +85,37 @@ router.post("/", async (req, res) => {
     const savedOrder = await order.save();
 
     res.status(201).json(savedOrder);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// GET ALL ORDERS
+router.get("/", async (req, res) => {
+  try {
+    const orders = await Order.find().populate("plan");
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// UPDATE ORDER STATUS
+router.put("/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(order);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

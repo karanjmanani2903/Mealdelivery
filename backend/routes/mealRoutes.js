@@ -25,4 +25,14 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Delete meal
+router.delete("/:id", async (req, res) => {
+  try {
+    await Meal.findByIdAndDelete(req.params.id);
+    res.json({ message: "Meal deleted" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
