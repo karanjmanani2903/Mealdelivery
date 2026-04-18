@@ -45,7 +45,14 @@ router.post("/", async (req, res) => {
         if (!match) continue;
         let value = parseInt(match[1]) * plan.servings;
         let unit = ing.quantity.replace(match[1], "").trim().toLowerCase();
-        if (!unit) unit = "unit";
+
+// default unit
+if (!unit) unit = "unit";
+
+// 🔥 FIX: normalize plural units (pieces → piece)
+if (unit.endsWith("s")) {
+  unit = unit.slice(0, -1);
+}
 
         if (unitConversion[unit]) {
           value = value * unitConversion[unit].factor;

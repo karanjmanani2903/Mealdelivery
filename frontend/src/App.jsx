@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 function App() {
   const [meals, setMeals] = useState([]);
   const [selectedMeals, setSelectedMeals] = useState([]);
+  const [selectedMeal, setSelectedMeal] = useState(null);
   const [plan, setPlan] = useState(null);
   const [page, setPage] = useState("home");
 
-  // Fetch meals
   useEffect(() => {
     fetch("http://localhost:8000/api/meals")
       .then((res) => res.json())
@@ -14,7 +14,6 @@ function App() {
       .catch((err) => console.error(err));
   }, []);
 
-  // Toggle selection
   const toggleMeal = (id) => {
     setSelectedMeals((prev) =>
       prev.includes(id)
@@ -23,18 +22,20 @@ function App() {
     );
   };
 
-  // Create plan
+  const openMeal = (meal) => {
+    setSelectedMeal(meal);
+    setPage("detail");
+  };
+
   const createPlan = async () => {
     if (selectedMeals.length === 0) {
-      alert("Please select at least one meal");
+      alert("Select at least one meal");
       return;
     }
 
     const res = await fetch("http://localhost:8000/api/plans", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user: "karan",
         meals: selectedMeals,
@@ -47,180 +48,181 @@ function App() {
     setPage("plan");
   };
 
-  // Create order
   const createOrder = async () => {
     const planId = plan?.plan?._id || plan?._id;
 
-    const res = await fetch("http://localhost:8000/api/orders", {
+    await fetch("http://localhost:8000/api/orders", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user: "karan",
         planId,
       }),
     });
 
-    await res.json();
     setPage("order");
   };
 
-  // Smart recommendation (ingredient-based)
-  const getRecommendations = () => {
-    if (selectedMeals.length === 0) return [];
-
-    const selected = meals.filter((m) =>
-      selectedMeals.includes(m._id)
-    );
-
-    const selectedIngredients = new Set();
-
-    selected.forEach((meal) => {
-      meal.ingredients.forEach((ing) => {
-        selectedIngredients.add(ing.name);
-      });
-    });
-
-    const scored = meals
-      .filter((m) => !selectedMeals.includes(m._id))
-      .map((meal) => {
-        let score = 0;
-
-        meal.ingredients.forEach((ing) => {
-          if (selectedIngredients.has(ing.name)) score++;
-        });
-
-        return { ...meal, score };
-      });
-
-    return scored.sort((a, b) => b.score - a.score).slice(0, 6);
-  };
-
-  // Image helper
-  const getMealImage = (name) => {
-    return `https://source.unsplash.com/300x200/?${name},food`;
+  const isEssential = (name) => {
+    const basics = ["salt", "oil", "water", "flour", "sugar"];
+    return basics.includes(name.toLowerCase());
   };
 
   return (
-    <div>
-      {/* Navbar */}
-      <div
-        style={{
-          backgroundColor: "#111",
-          color: "white",
-          padding: "15px",
-          fontSize: "20px",
-          fontWeight: "bold",
-        }}
-      >
-        Meal Delivery
+    <div style={{ background: "#f8f9fb", minHeight: "100vh" }}>
+
+      {/* NAVBAR */}
+      <div style={{
+        background: "#111",
+        color: "white",
+        padding: "15px 25px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        fontWeight: "bold"
+      }}>
+        <span>MealAI 🍽️</span>
+        <span>Selected: {selectedMeals.length}</span>
       </div>
 
-      <div
-        style={{
-          padding: "20px",
-          maxWidth: "1100px",
-          margin: "0 auto",
-        }}
-      >
+      {/* HERO */}
+      <div style={{
+        height: "280px",
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1600891964599-f61ba0e24092')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+        textAlign: "center"
+      }}>
+        <div style={{
+          background: "rgba(0,0,0,0.6)",
+          padding: "25px",
+          borderRadius: "12px"
+        }}>
+          <h1 style={{ fontSize: "36px", marginBottom: "10px" }}>
+            Plan Meals Smarter
+          </h1>
+          <p style={{ fontSize: "16px" }}>
+            Select dishes → Generate plan → Get groceries
+          </p>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: "1100px", margin: "auto", padding: "30px" }}>
+
         {/* HOME */}
         {page === "home" && (
           <>
-            <h2>Explore Meals</h2>
+            <h2 style={{ marginBottom: "20px" }}>Explore Meals</h2>
 
-            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+              gap: "20px"
+            }}>
               {meals.map((meal) => {
                 const isSelected = selectedMeals.includes(meal._id);
 
                 return (
                   <div
                     key={meal._id}
-                    onClick={() => toggleMeal(meal._id)}
                     style={{
-                      border: isSelected
-                        ? "2px solid #22c55e"
-                        : "1px solid #ddd",
-                      width: "260px",
+                      background: "white",
                       borderRadius: "12px",
-                      cursor: "pointer",
-                      overflow: "hidden",
-                      backgroundColor: "white",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                      padding: "15px",
+                      boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+                      transition: "0.2s",
                     }}
                   >
-                    <img
-                      src={getMealImage(meal.name)}
-                      alt={meal.name}
-                      style={{
-                        width: "100%",
-                        height: "150px",
-                        objectFit: "cover",
-                      }}
-                    />
-
-                    <div style={{ padding: "12px" }}>
+                    <div
+                      onClick={() => openMeal(meal)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <h3>{meal.name}</h3>
-                      <p style={{ fontSize: "14px", color: "#555" }}>
+                      <p style={{ fontSize: "13px", color: "#666" }}>
                         {meal.description}
                       </p>
                       <p><strong>₹{meal.basePrice}</strong></p>
                     </div>
+
+                    <button
+                      onClick={() => toggleMeal(meal._id)}
+                      style={{
+                        marginTop: "10px",
+                        width: "100%",
+                        padding: "8px",
+                        background: isSelected ? "#dc2626" : "#16a34a",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {isSelected ? "Remove" : "Add to Plan"}
+                    </button>
                   </div>
                 );
               })}
             </div>
 
-            {/* Recommendations */}
-            {selectedMeals.length > 0 && (
-              <div style={{ marginTop: "30px" }}>
-                <h2>Smart Recommendations 🔥</h2>
+            <div style={{ textAlign: "center" }}>
+              <button
+                onClick={createPlan}
+                style={{
+                  marginTop: "30px",
+                  padding: "14px 30px",
+                  background: "#16a34a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                Generate Weekly Plan 🚀
+              </button>
+            </div>
+          </>
+        )}
 
-                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                  {getRecommendations().map((meal) => (
-                    <div
-                      key={meal._id}
-                      style={{
-                        width: "200px",
-                        borderRadius: "10px",
-                        overflow: "hidden",
-                        backgroundColor: "white",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      <img
-                        src={getMealImage(meal.name)}
-                        alt={meal.name}
-                        style={{
-                          width: "100%",
-                          height: "120px",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div style={{ padding: "10px" }}>
-                        <h4>{meal.name}</h4>
-                        <p>₹{meal.basePrice}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* DETAIL */}
+        {page === "detail" && selectedMeal && (
+          <>
+            <button onClick={() => setPage("home")}>⬅ Back</button>
+
+            <h2 style={{ marginTop: "20px" }}>{selectedMeal.name}</h2>
+            <p>{selectedMeal.description}</p>
+            <p><strong>Category:</strong> {selectedMeal.category}</p>
+            <p><strong>Price:</strong> ₹{selectedMeal.basePrice}</p>
+
+            <h3>Ingredients</h3>
+            <ul>
+              {selectedMeal.ingredients.map((ing, i) => (
+                <li key={i}>
+                  {ing.name} - {ing.quantity}
+                </li>
+              ))}
+            </ul>
 
             <button
-              onClick={createPlan}
+              onClick={() => toggleMeal(selectedMeal._id)}
               style={{
                 marginTop: "20px",
-                padding: "12px 24px",
-                backgroundColor: "#22c55e",
+                padding: "10px 20px",
+                background: "#16a34a",
                 color: "white",
                 border: "none",
                 borderRadius: "8px",
-                fontWeight: "600",
-                cursor: "pointer",
               }}
             >
-              Create Weekly Plan
+              {selectedMeals.includes(selectedMeal._id)
+                ? "Remove from Plan"
+                : "Add to Plan"}
             </button>
           </>
         )}
@@ -228,23 +230,48 @@ function App() {
         {/* PLAN */}
         {page === "plan" && plan && (
           <>
-            <h2>Plan Summary</h2>
+            <h2>Your Weekly Plan 🍱</h2>
 
-            <ul>
-              {Object.entries(plan.ingredients || {}).map(([name, value]) => (
-                <li key={name}>
-                  {name}: {value.total} {value.unit}
-                </li>
-              ))}
-            </ul>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: "15px"
+            }}>
+              {meals
+                .filter((meal) => selectedMeals.includes(meal._id))
+                .map((meal) => (
+                  <div key={meal._id} style={{
+                    background: "white",
+                    padding: "10px",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                  }}>
+                    <h4>{meal.name}</h4>
+                    <p>₹{meal.basePrice}</p>
+                  </div>
+                ))}
+            </div>
 
-            <h3>Total Price: ₹{plan.plan?.totalPrice || plan.totalPrice}</h3>
+            <h3 style={{ marginTop: "20px" }}>
+              Total Price: ₹{plan.plan?.totalPrice || plan.totalPrice}
+            </h3>
+
+            <div style={{ marginTop: "25px" }}>
+              <h3>Groceries we will deliver 🛒</h3>
+
+              <ul>
+                {Object.entries(plan.ingredients || {})
+                  .filter(([name]) => !isEssential(name))
+                  .map(([name, value]) => (
+                    <li key={name}>
+                      {name}: {value.total} {value.unit}
+                    </li>
+                  ))}
+              </ul>
+            </div>
 
             <button onClick={createOrder}>Place Order</button>
-
-            <button onClick={() => setPage("home")}>
-              Back
-            </button>
+            <button onClick={() => setPage("home")}>Back</button>
           </>
         )}
 
@@ -253,7 +280,6 @@ function App() {
           <>
             <h2>Order Confirmed 🎉</h2>
             <p>Your order has been placed successfully.</p>
-
             <button onClick={() => setPage("home")}>
               Back to Home
             </button>
