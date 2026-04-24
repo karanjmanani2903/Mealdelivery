@@ -40,7 +40,7 @@ This bridges the gap between **meal decision-making and execution**.
 
 ## Live Demo
 
-https://mealpreppy-app.vercel.app
+https://mealpreppy-home.vercel.app
 
 ## Screenshots
 
