@@ -44,7 +44,11 @@ https://mealpreppy-app.vercel.app
 
 ## Screenshots
 
-(Add screenshots here)
+![Landing Page](frontend/public/screenshots/landing.png)
+![Explore Page](frontend/public/screenshots/explore.png)
+![Plan Page](frontend/public/screenshots/plan.png)
+![Checkout Page](frontend/public/screenshots/checkout.png)
+![OrderConfirmed Page](frontend/public/screenshots/checkout.png)
 
 ## Future Scope
 
