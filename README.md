@@ -25,7 +25,7 @@ This bridges the gap between **meal decision-making and execution**.
 
 ##  Key Highlights
 
-- **End-to-end workflow**: Meal selection → Plan generation → Grocery aggregation → Order
+- **End-to-end workflow**: Meal selection - Plan generation - Grocery aggregation - Order
 - **Data-driven aggregation**: Ingredients from multiple meals are intelligently combined
 - **Flexible planning**: Supports both manual selection and curated plans
 - **Real-time interaction**: Immediate feedback on selections and plan generation
