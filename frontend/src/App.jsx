@@ -266,26 +266,26 @@ const CURATED_PLANS = {
       id: "vhealthy", badge: "Most Popular", title: "Healthy Veggie Week",
       subtitle: "High protein, balanced every day", emoji: "🥗", price: 1199,
       days: [
-        { day: "Mon", meal: "Dal Tadka + Roti",           isVeg: true },
-        { day: "Tue", meal: "Aloo Gobi + Paratha",         isVeg: true },
+        { day: "Mon", meal: "Dal Tadka + Jeera Rice",           isVeg: true },
+        { day: "Tue", meal: "Chicken Curry + Paratha",         isVeg: true },
         { day: "Wed", meal: "Rajma Chawal",                isVeg: true },
-        { day: "Thu", meal: "Pasta Arrabbiata",            isVeg: true },
-        { day: "Fri", meal: "Paneer Butter Masala + Rice", isVeg: true },
+        { day: "Thu", meal: "Healthy Quinoa Bowl",            isVeg: true },
+        { day: "Fri", meal: "Paneer Butter Masala + Jeera Rice", isVeg: true },
         { day: "Sat", meal: "Rajma Chawal",                isVeg: true },
-        { day: "Sun", meal: "Dal Tadka + Rice",            isVeg: true },
+        { day: "Sun", meal: "Dal Tadka + Jeera Rice",            isVeg: true },
       ],
     },
     {
       id: "vquick", badge: "Quick Prep", title: "Under 30 Minutes",
       subtitle: "For the ultra-busy weekday", emoji: "⚡", price: 999,
       days: [
-        { day: "Mon", meal: "Aloo Gobi + Chapati",         isVeg: true },
-        { day: "Tue", meal: "Pasta Arrabbiata",            isVeg: true },
-        { day: "Wed", meal: "Dal Tadka + Rice",            isVeg: true },
+        { day: "Mon", meal: "Masala Dosa",         isVeg: true },
+        { day: "Tue", meal: "Kanda Poha",            isVeg: true },
+        { day: "Wed", meal: "Dal Tadka + Jeera Rice",            isVeg: true },
         { day: "Thu", meal: "Paneer Butter Masala",        isVeg: true },
         { day: "Fri", meal: "Rajma Chawal",                isVeg: true },
-        { day: "Sat", meal: "Pasta Arrabbiata",            isVeg: true },
-        { day: "Sun", meal: "Aloo Gobi + Rice",            isVeg: true },
+        { day: "Sat", meal: "Salad",            isVeg: true },
+        { day: "Sun", meal: "Egg bhurji",            isVeg: true },
       ],
     },
   ],
@@ -333,7 +333,7 @@ export default function App() {
   const [planTab, setPlanTab] = useState("veg");
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/meals")
+    fetch("https://mealpreppy-backend.onrender.com/api/meals")
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data) && data.length) setMeals(data); })
       .catch(() => {});
@@ -349,7 +349,7 @@ export default function App() {
   const createPlan = async () => {
     if (selectedMeals.length === 0) { alert("Select at least one meal first!"); return; }
     try {
-      const res = await fetch("http://localhost:8000/api/plans", {
+      const res = await fetch("https://mealpreppy-backend.onrender.com/api/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user: "user", meals: selectedMeals, weekStartDate: new Date() }),
@@ -373,7 +373,7 @@ export default function App() {
   const createOrder = async () => {
     const planId = plan?.plan?._id || plan?._id;
     try {
-      await fetch("http://localhost:8000/api/orders", {
+      await fetch("https://mealpreppy-backend.onrender.com/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user: "user", planId }),
